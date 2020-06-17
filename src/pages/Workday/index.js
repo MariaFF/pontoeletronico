@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Text } from 'react-native';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 

@@ -9,6 +9,13 @@ export const Container = styled.View`
   padding: 0 30px 120px;
 `;
 
+export const Label = styled.Text`
+  font-size: 18px;
+  font-family: 'RobotoSlab-Regular';
+  align-self: flex-start;
+  margin-bottom: 8px;
+`;
+
 export const Input = styled.View`
   width: 100%;
   height: 60px;
@@ -50,6 +57,12 @@ export const ButtonText = styled.Text`
   color: #fff;
   font-size: 18px;
   font-family: 'RobotoSlab-Regular';
+`;
+
+export const NewPassInfo = styled.Text`
+  font-family: 'RobotoSlab-Medium';
+  font-size: 20px;
+  margin-bottom: 8px;
 `;
 
 

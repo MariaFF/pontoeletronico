@@ -18,22 +18,6 @@ const Dashboard = ({ navigation }) => {
     // {id: 2, tipo: 'saida', date: '16:40', obs: 'teste'}
   ]
 
-  // useEffect(() => {
-  //   async function loadStorageData(): Promise<void> {
-  //     const [token, user] = await AsyncStorage.multiGet([
-  //       '@GoBarber:token',
-  //       '@GoBarber:user',
-  //     ]);
-
-  //     if (token[1] && user[1]) {
-  //       setData({ token: token[1], user: JSON.parse(user[1]) });
-  //     }
-
-  //     setLoading(false);
-  //   }
-  //   loadStorageData();
-  // }, []);
-
   useEffect(() => {
     async function loadStorageUser() {
       const [token, user] = await AsyncStorage.multiGet([
@@ -41,28 +25,40 @@ const Dashboard = ({ navigation }) => {
         '@PontoEletronico:user',
       ])
       // const jsonValue = await AsyncStorage.getItem('@PontoEletronico')
-      console.log('USER', user);
+      // console.log('é array', user, token);
 
       if(token[1] && user[1]) {
-        setData({token: token[1], user: JSON.parse(user[1]) })
+        let userParsed = JSON.parse(user[1]);
 
+        setData({token: token[1], user: userParsed.reduce(function(result, item, index, array) {
+          return item;
+        }, {}) })
       }
     }
-    console.log(' DATA USER', data);
+    console.log(' DATA USER', data.user);
     loadStorageUser();
+  setLoading(false);
+  }, []);
+
+  // get current position of employ
+  useEffect(() => {
     Geolocation.getCurrentPosition(
       ({ coords }) => {
-        console.log('POSITION', coords);
-        setLocation(coords);
+        const { latitude, longitude } = coords;
+        setLocation({ latitude, longitude });
       },
       (error) => {
         // See error code charts below.
         console.log('ERROR', error.code, error.message);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-  );
-  setLoading(false);
-  }, []);
+    );
+  }, [])
+
+  function handleRegister() {
+    navigation.navigate('Workday');
+  }
+
   return (
     <>
     <LinearGradient
@@ -77,7 +73,7 @@ const Dashboard = ({ navigation }) => {
         <AvatarText>MF</AvatarText>
       </Avatar>
       <Text style={{ color: 'white', fontSize: 18 }}>Boa Tarde</Text>
-      <Text style={{ color: 'white', fontSize: 20 }}>{`Boa tarde ${data.user ? data.user.name : 'Colaborador'}`}</Text>
+      <Text style={{ color: 'white', fontSize: 20 }}>{`Boa tarde ${data.user ? data.user.nome : 'Colaborador'}`}</Text>
     </LinearGradient>
 
 
@@ -101,7 +97,7 @@ const Dashboard = ({ navigation }) => {
 
 
     </Container>
-    <Button onPress={() => navigation.navigate('Workday')}>
+    <Button onPress={() => handleRegister()}>
       <ButtonText>Registrar</ButtonText>
     </Button>
   </>

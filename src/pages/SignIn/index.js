@@ -1,81 +1,107 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { useNavigation } from '@react-navigation/native'
+import React, { useContext, useRef, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-community/async-storage';
-import api from '../../services/api'
+
+import {  useAuthContext } from '../../contexts/auth';
+import api from '../../services/api';
 
 
-import { Container, Input, Icon, TextInput, Button, ButtonText } from './styles';
+import { Container, Label, Input, Icon, TextInput, Button, ButtonText, NewPassInfo } from './styles';
 
 const SignIn = () => {
   const navigation = useNavigation();
+  const { signIn } = useAuthContext();
+
   const passwordRef = useRef(null);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [senha, setPassword] = useState('');
+  const [isFirstTime, setFirtsTime] = useState(false);
+  const [showInputPass, setShowInputPass] = useState(false);
+  const [colaborador_id, setColaboradorId] = useState(null);
 
 
-  const handleSignIn = useCallback(async (email, password) => {
+  async function handleNext(email){
     try {
-      console.log('login', email, password);
-
-      const response = await api.post('/sessions', {
+      const response = await api.post('/login', {
         email,
-        password,
       });
+      console.log('next');
 
-      const { token, user } = await response.data;
-      // await AsyncStorage.setItem('@PontoEletronico', JSON.stringify(user));
-      await AsyncStorage.multiSet([
-        ['@PontoEletronico:token', token],
-        ['@PontoEletronico:user', JSON.stringify(user)],
-      ])
-      console.log('DATA', user);
-      navigation.navigate('Home');
-    } catch (error) {
-      if (error.response) {
-        console.log(error.response.data);
-        console.log(error.response.status);
-        console.log(error.response.headers);
-      } else {
-        console.log(error.message);
+      setShowInputPass(true);
+      if (response.data.colaborador_id) {
+        setColaboradorId(response.data.colaborador_id);
+        return;
       }
-    }
 
-  }, []);
+    } catch (error) {
+      console.log('Erro', error);
+    }
+  }
+
+  function handleauthenticated() {
+    signIn(colaborador_id, email, senha);
+    navigation.navigate('Home');
+  }
+
+  function renderInputPass() {
+    return (
+      <>
+        <Label>Informe sua senha: </Label>
+        <Input>
+          <Icon name="lock" size={20} />
+          <TextInput
+            placeholder={isFirstTime ? 'Nova Senha' : 'Senha'}
+            placeholderTextColor="#666360"
+            secureTextEntry
+            returnKeyType="send"
+            value={senha}
+            onChangeText={senha => setPassword(senha)}
+            onSubmitEditing={() => handleauthenticated()}
+          />
+        </Input>
+      </>
+    )
+  }
+
+  function renderContent() {
+    if (showInputPass) {
+      return (
+        <>
+          {colaborador_id && (<NewPassInfo>Cadastre uma nova senha</NewPassInfo>)}
+          {renderInputPass()}
+
+          <Button onPress={() => handleauthenticated()}>
+            <ButtonText>Entrar</ButtonText>
+          </Button>
+        </>
+      );
+    }
+    return (
+      <>
+        <Label>Informe seu email: </Label>
+        <Input>
+          <Icon name="mail" size={20} />
+          <TextInput
+            placeholder="Email"
+            placeholderTextColor="#666360"
+            autoCorrect={false}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            returnKeyType="next"
+            value={email}
+            onChangeText={email => setEmail(email)}
+          />
+        </Input>
+        <Button onPress={() => handleNext(email)}>
+          <ButtonText>Próximo</ButtonText>
+        </Button>
+      </>
+    )
+  }
 
   return (
     <Container>
-      <Input>
-        <Icon name="mail" size={20} />
-        <TextInput
-          placeholder="Email"
-          placeholderTextColor="#666360"
-          autoCorrect={false}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          returnKeyType="next"
-          value={email}
-          onChangeText={email => setEmail(email)}
-        />
-      </Input>
-
-      <Input>
-        <Icon name="lock" size={20} />
-        <TextInput
-          placeholder="Senha"
-          placeholderTextColor="#666360"
-          secureTextEntry
-          returnKeyType="send"
-          value={password}
-          onChangeText={password => setPassword(password)}
-          onSubmitEditing={() => handleSignIn(email, password)}
-        />
-      </Input>
-
-      <Button onPress={() => handleSignIn(email, password)}>
-        <ButtonText>Entrar</ButtonText>
-      </Button>
-
-
+      {renderContent()}
     </Container>
   );
 }
